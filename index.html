@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบลงทะเบียนใช้ฟิตเนส</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f4f8;
+        }
+        /* Custom scrollbar for better look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px;}
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .active-nav {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex flex-col items-center">
+            <img src="https://i.imgur.com/rS2ZT4j.png" alt="Fitness Logo" class="h-16 w-16 mb-2">
+            <h1 class="text-2xl md:text-3xl font-bold text-blue-600">ระบบลงทะเบียนใช้ฟิตเนส</h1>
+        </div>
+    </header>
+
+    <nav class="bg-white shadow-sm mb-6 sticky top-[116px] z-40">
+        <div class="container mx-auto flex justify-center items-center space-x-4 sm:space-x-8 p-3 text-sm sm:text-base">
+            <button id="nav-checkin" class="nav-btn py-2 px-3 transition duration-300 active-nav">หน้าหลัก (เช็คอิน)</button>
+            <button id="nav-register" class="nav-btn py-2 px-3 transition duration-300">ลงทะเบียน</button>
+            <button id="nav-dashboard" class="nav-btn py-2 px-3 transition duration-300">แดชบอร์ด</button>
+            <button id="nav-admin" class="nav-btn py-2 px-3 transition duration-300">แอดมิน</button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 pb-16">
+        <div id="views-container">
+
+            <div id="checkin-view" class="view">
+                <div class="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
+                    <h2 class="text-xl font-bold text-center mb-4 text-blue-700">ลงชื่อเข้า-ออกระบบ</h2>
+                    <div class="mb-4">
+                        <label for="search-user" class="block text-sm font-medium text-gray-700 mb-1">ค้นหาสมาชิก (ชื่อ-สกุล):</label>
+                        <input type="text" id="search-user" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="พิมพ์เพื่อค้นหา...">
+                    </div>
+                    <div id="user-list-container" class="max-h-96 overflow-y-auto space-y-3">
+                        </div>
+                </div>
+            </div>
+
+            <div id="register-view" class="view hidden">
+                <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg mx-auto">
+                    <h2 class="text-xl font-bold text-center mb-6 text-blue-700">ลงทะเบียนสมาชิกใหม่</h2>
+                    <form id="register-form" class="space-y-4">
+                        <div>
+                            <label for="firstName" class="block text-sm font-medium text-gray-700">ชื่อ</label>
+                            <input type="text" id="firstName" name="firstName" class="mt-1 w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="lastName" class="block text-sm font-medium text-gray-700">สกุล</label>
+                            <input type="text" id="lastName" name="lastName" class="mt-1 w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="occupation" class="block text-sm font-medium text-gray-700">อาชีพ</label>
+                            <input type="text" id="occupation" name="occupation" class="mt-1 w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                            <input type="tel" id="phone" name="phone" class="mt-1 w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 font-bold">
+                            ลงทะเบียน
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="dashboard-view" class="view hidden">
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white p-4 rounded-lg shadow-lg text-center">
+                        <h3 class="text-lg font-semibold text-gray-600">ผู้ใช้ วันนี้</h3>
+                        <p id="daily-count" class="text-3xl font-bold text-blue-600">0</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-lg text-center">
+                        <h3 class="text-lg font-semibold text-gray-600">ผู้ใช้ สัปดาห์นี้</h3>
+                        <p id="weekly-count" class="text-3xl font-bold text-green-600">0</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-lg text-center">
+                        <h3 class="text-lg font-semibold text-gray-600">ผู้ใช้ เดือนนี้</h3>
+                        <p id="monthly-count" class="text-3xl font-bold text-purple-600">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+                    <h3 class="text-xl font-bold text-center mb-4 text-blue-700">กราฟสรุปช่วงเวลาใช้งาน (รายชั่วโมง)</h3>
+                    <canvas id="usage-chart"></canvas>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold text-center mb-4 text-blue-700">เดือนที่มีผู้ใช้งานสูงสุด</h3>
+                    <p id="peak-month" class="text-2xl text-center font-bold text-red-500">-</p>
+                </div>
+            </div>
+
+            <div id="admin-view" class="view hidden">
+                <div id="admin-login" class="bg-white p-6 rounded-lg shadow-lg max-w-sm mx-auto">
+                    <h2 class="text-xl font-bold text-center mb-4">Admin Login</h2>
+                    <form id="login-form" class="space-y-4">
+                        <div>
+                            <label for="username">Username</label>
+                            <input type="text" id="username" value="admin" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label for="password">Password</label>
+                            <input type="password" id="password" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 font-bold">Login</button>
+                    </form>
+                </div>
+
+                <div id="admin-crud" class="hidden bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-xl font-bold mb-4">จัดการข้อมูลสมาชิก</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="py-2 px-4 text-left">ชื่อ-สกุล</th>
+                                    <th class="py-2 px-4 text-left">อาชีพ</th>
+                                    <th class="py-2 px-4 text-left">เบอร์โทร</th>
+                                    <th class="py-2 px-4 text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crud-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center p-4 mt-12 fixed bottom-0 w-full">
+        <p>พัฒนาโดย นายดนุพล นิโอ๊ะ | เรียนคอมกับครูซา | @2025</p>
+    </footer>
+
+    <script>
+        // ######################################################
+        // # CONFIGURATION - IMPORTANT!                       #
+        // ######################################################
+        // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+        const SCRIPT_URL = "YOUR_WEB_APP_URL";
+
+        // ######################################################
+        // # GLOBAL VARIABLES & STATE MANAGEMENT              #
+        // ######################################################
+        let allUsers = [];
+        let usageChart = null;
+
+        // ######################################################
+        // # UTILITY & HELPER FUNCTIONS                       #
+        // ######################################################
+        
+        // JSONP Requester
+        function jsonpRequest(url, callbackName) {
+            return new Promise((resolve, reject) => {
+                window[callbackName] = (data) => {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    resolve(data);
+                };
+                const script = document.createElement('script');
+                script.src = `${url}&callback=${callbackName}`;
+                script.onerror = reject;
+                document.body.appendChild(script);
+            });
+        }
+
+        // Show loading indicator
+        function showLoading(title = 'กำลังโหลด...') {
+            Swal.fire({
+                title: title,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
+        // ######################################################
+        // # VIEW NAVIGATION LOGIC                            #
+        // ######################################################
+        const views = document.querySelectorAll('.view');
+        const navButtons = document.querySelectorAll('.nav-btn');
+        
+        function switchView(viewId) {
+            views.forEach(view => view.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+
+            navButtons.forEach(btn => btn.classList.remove('active-nav'));
+            const activeBtn = document.getElementById(`nav-${viewId.replace('-view', '')}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active-nav');
+            }
+
+            // Load data for the specific view
+            if (viewId === 'checkin-view' || viewId === 'admin-view') {
+                 loadAllUsers();
+            } else if (viewId === 'dashboard-view') {
+                loadDashboardData();
+            }
+        }
+
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const viewId = btn.id.replace('nav-', '') + '-view';
+                switchView(viewId);
+            });
+        });
+
+        // ######################################################
+        // # CHECK-IN / CHECK-OUT LOGIC                       #
+        // ######################################################
+        async function loadAllUsers() {
+            showLoading('กำลังโหลดข้อมูลสมาชิก...');
+            try {
+                const url = `${SCRIPT_URL}?action=getUsers`;
+                const response = await jsonpRequest(url, 'handleGetUsers');
+                if (response.success) {
+                    allUsers = response.data;
+                    renderUserList(allUsers);
+                    renderCrudTable(allUsers);
+                } else {
+                    throw new Error(response.message);
+                }
+            } catch (error) {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลสมาชิกได้: ' + error.message, 'error');
+            } finally {
+                Swal.close();
+            }
+        }
+
+        function renderUserList(users) {
+            const container = document.getElementById('user-list-container');
+            container.innerHTML = '';
+            if (users.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">ไม่พบข้อมูลสมาชิก</p>';
+                return;
+            }
+            users.forEach(user => {
+                const isCheckedIn = user.status === 'Checked-In';
+                const card = `
+                    <div class="p-4 border rounded-lg flex justify-between items-center ${isCheckedIn ? 'bg-blue-50 border-blue-200' : 'bg-white'}">
+                        <div>
+                            <p class="font-bold">${user.firstName} ${user.lastName}</p>
+                            <p class="text-sm text-gray-500">${user.occupation}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="check-in-btn bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600 disabled:bg-gray-400" data-id="${user.id}" ${isCheckedIn ? 'disabled' : ''}>Check In</button>
+                            <button class="check-out-btn bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 disabled:bg-gray-400" data-id="${user.id}" ${!isCheckedIn ? 'disabled' : ''}>Check Out</button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+            addCheckInOutListeners();
+        }
+
+        function addCheckInOutListeners() {
+            document.querySelectorAll('.check-in-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const userId = e.target.dataset.id;
+                    showLoading('กำลังเช็คอิน...');
+                    try {
+                        const url = `${SCRIPT_URL}?action=checkIn&id=${userId}`;
+                        const response = await jsonpRequest(url, 'handleCheckIn');
+                        if (response.success) {
+                            Swal.fire('สำเร็จ', response.message, 'success');
+                            loadAllUsers();
+                        } else {
+                            throw new Error(response.message);
+                        }
+                    } catch (error) {
+                         Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.check-out-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const userId = e.target.dataset.id;
+                    showLoading('กำลังเช็คเอาท์...');
+                    try {
+                         const url = `${SCRIPT_URL}?action=checkOut&id=${userId}`;
+                        const response = await jsonpRequest(url, 'handleCheckOut');
+                        if (response.success) {
+                            Swal.fire('สำเร็จ', response.message, 'success');
+                            loadAllUsers();
+                        } else {
+                            throw new Error(response.message);
+                        }
+                    } catch (error) {
+                         Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+                    }
+                });
+            });
+        }
+        
+        document.getElementById('search-user').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredUsers = allUsers.filter(user => 
+                `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm)
+            );
+            renderUserList(filteredUsers);
+        });
+
+        // ######################################################
+        // # REGISTRATION LOGIC                               #
+        // ######################################################
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            showLoading('กำลังบันทึกข้อมูล...');
+            try {
+                const params = new URLSearchParams(data);
+                const url = `${SCRIPT_URL}?action=register&${params.toString()}`;
+                const response = await jsonpRequest(url, 'handleRegister');
+                if (response.success) {
+                    Swal.fire('ลงทะเบียนสำเร็จ!', 'ข้อมูลของคุณถูกบันทึกแล้ว', 'success');
+                    e.target.reset();
+                    switchView('checkin-view');
+                } else {
+                    throw new Error(response.message);
+                }
+            } catch (error) {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลงทะเบียนได้: ' + error.message, 'error');
+            }
+        });
+
+
+        // ######################################################
+        // # DASHBOARD LOGIC                                  #
+        // ######################################################
+        async function loadDashboardData() {
+            showLoading('กำลังโหลดข้อมูลแดชบอร์ด...');
+            try {
+                const url = `${SCRIPT_URL}?action=getDashboardData`;
+                const response = await jsonpRequest(url, 'handleDashboardData');
+                if (response.success) {
+                    const data = response.data;
+                    document.getElementById('daily-count').textContent = data.dailyCount;
+                    document.getElementById('weekly-count').textContent = data.weeklyCount;
+                    document.getElementById('monthly-count').textContent = data.monthlyCount;
+                    document.getElementById('peak-month').textContent = data.peakMonth || '-';
+                    renderUsageChart(data.usageByHour);
+                } else {
+                    throw new Error(response.message);
+                }
+            } catch(error) {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลแดชบอร์ดได้: ' + error.message, 'error');
+            } finally {
+                Swal.close();
+            }
+        }
+        
+        function renderUsageChart(usageData) {
+            const ctx = document.getElementById('usage-chart').getContext('2d');
+            const labels = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+            const data = labels.map(label => {
+                const hour = parseInt(label.split(':')[0]);
+                return usageData[hour] || 0;
+            });
+            
+            if (usageChart) {
+                usageChart.destroy();
+            }
+
+            usageChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'จำนวนผู้เข้าใช้งาน',
+                        data: data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // ######################################################
+        // # ADMIN & CRUD LOGIC                               #
+        // ######################################################
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            if (user === 'admin' && pass === '564@') {
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-crud').classList.remove('hidden');
+                loadAllUsers();
+            } else {
+                Swal.fire('ผิดพลาด', 'Username หรือ Password ไม่ถูกต้อง', 'error');
+            }
+        });
+        
+        function renderCrudTable(users) {
+            const tbody = document.getElementById('crud-table-body');
+            tbody.innerHTML = '';
+            users.forEach(user => {
+                const row = `
+                    <tr class="border-b">
+                        <td class="py-2 px-4">${user.firstName} ${user.lastName}</td>
+                        <td class="py-2 px-4">${user.occupation}</td>
+                        <td class="py-2 px-4">${user.phone}</td>
+                        <td class="py-2 px-4 text-center">
+                            <button onclick="editUser('${user.id}')" class="text-blue-600 hover:underline mr-4">แก้ไข</button>
+                            <button onclick="deleteUser('${user.id}')" class="text-red-600 hover:underline">ลบ</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+        
+        async function editUser(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            const { value: formValues } = await Swal.fire({
+                title: 'แก้ไขข้อมูลสมาชิก',
+                html:
+                    `<input id="swal-firstName" class="swal2-input" value="${user.firstName}">` +
+                    `<input id="swal-lastName" class="swal2-input" value="${user.lastName}">` +
+                    `<input id="swal-occupation" class="swal2-input" value="${user.occupation}">` +
+                    `<input id="swal-phone" class="swal2-input" value="${user.phone}">`,
+                focusConfirm: false,
+                preConfirm: () => {
+                    return {
+                        id: userId,
+                        firstName: document.getElementById('swal-firstName').value,
+                        lastName: document.getElementById('swal-lastName').value,
+                        occupation: document.getElementById('swal-occupation').value,
+                        phone: document.getElementById('swal-phone').value
+                    }
+                }
+            });
+            
+            if (formValues) {
+                showLoading('กำลังอัปเดตข้อมูล...');
+                try {
+                    const params = new URLSearchParams(formValues);
+                    const url = `${SCRIPT_URL}?action=updateUser&${params.toString()}`;
+                    const response = await jsonpRequest(url, 'handleUpdateUser');
+                     if (response.success) {
+                        Swal.fire('สำเร็จ', 'อัปเดตข้อมูลเรียบร้อย', 'success');
+                        loadAllUsers();
+                    } else {
+                        throw new Error(response.message);
+                    }
+                } catch(error) {
+                    Swal.fire('ผิดพลาด', 'ไม่สามารถอัปเดตข้อมูลได้: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function deleteUser(userId) {
+            Swal.fire({
+                title: 'คุณแน่ใจหรือไม่?',
+                text: "คุณจะไม่สามารถกู้คืนข้อมูลนี้ได้!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'ใช่, ลบเลย!',
+                cancelButtonText: 'ยกเลิก'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    showLoading('กำลังลบข้อมูล...');
+                    try {
+                        const url = `${SCRIPT_URL}?action=deleteUser&id=${userId}`;
+                        const response = await jsonpRequest(url, 'handleDeleteUser');
+                        if (response.success) {
+                            Swal.fire('ลบแล้ว!', 'ข้อมูลสมาชิกถูกลบเรียบร้อย', 'success');
+                            loadAllUsers();
+                        } else {
+                            throw new Error(response.message);
+                        }
+                    } catch(error) {
+                        Swal.fire('ผิดพลาด', 'ไม่สามารถลบข้อมูลได้: ' + error.message, 'error');
+                    }
+                }
+            })
+        }
+
+        // ######################################################
+        // # INITIALIZATION                                   #
+        // ######################################################
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start on the check-in view by default
+            switchView('checkin-view');
+        });
+
+    </script>
+</body>
+</html>
